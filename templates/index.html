@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Topics Analyzer</title>
+    <!-- Add Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            backdrop-filter: blur(4px);
+        }
+
+        h1 {
+            color: #1a237e;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .run-button {
+            display: block;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .run-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        .run-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #result {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        #result.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-header {
+            color: #1a237e;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .trends-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .trend-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .trend-item:hover {
+            transform: translateX(10px);
+            background: #e3f2fd;
+        }
+
+        .trend-item i {
+            margin-right: 1rem;
+            color: #1976D2;
+        }
+
+        .ip-info {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #e3f2fd;
+            border-radius: 10px;
+            color: #1976D2;
+        }
+
+        .json-container {
+            background: #272822;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .json-container pre {
+            color: #f8f8f2;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .run-button {
+                padding: 0.8rem 1.6rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1><i class="fas fa-chart-line"></i> Trending Topics Analyzer</h1>
+        <button class="run-button" onclick="runScript()">
+            <i class="fas fa-play"></i> Analyze Trends
+        </button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function runScript() {
+            const button = document.querySelector('.run-button');
+            const resultDiv = document.getElementById('result');
+
+            button.disabled = true;
+            button.innerHTML = `
+                Running Analysis
+                <span class="loading"></span>
+            `;
+
+            try {
+                const response = await fetch('/run-script');
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <h2 class="result-header">
+                        <i class="fas fa-fire"></i> 
+                        Trending Topics as of ${new Date(data.date_time).toLocaleString()}
+                    </h2>
+                    <ul class="trends-list">
+                        ${data.trends.map(trend => `
+                            <li class="trend-item">
+                                <i class="fas fa-hashtag"></i>
+                                ${trend}
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <div class="ip-info">
+                        <i class="fas fa-network-wired"></i>
+                        IP Address: ${data.ip_address}
+                    </div>
+                    <h3 class="result-header">
+                        <i class="fas fa-database"></i> 
+                        MongoDB Record
+                    </h3>
+                    <div class="json-container">
+                        <pre>${JSON.stringify(data.mongo_record, null, 2)}</pre>
+                    </div>
+                `;
+
+                resultDiv.classList.add('visible');
+
+            } catch (error) {
+                console.error(error);
+                alert('An error occurred while analyzing trends. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = `
+                    <i class="fas fa-redo"></i> 
+                    Analyze Again
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>
