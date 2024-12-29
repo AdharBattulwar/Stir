@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, render_template
-from main import run_selenium_script  # Import the function from main.py
+from main import run_selenium_script
 from pymongo import MongoClient
 import datetime
 from dotenv import load_dotenv
@@ -9,7 +9,6 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# MongoDB setup
 MongoDbURI = os.getenv("MONGODB_URI")
 client = MongoClient(MongoDbURI)
 db = client['Stir']
@@ -21,14 +20,11 @@ def index():
 
 @app.route('/run-script')
 def run_script():
-    # Call the Selenium script function
     result = run_selenium_script()
 
     if result:
-        # Convert ObjectId to string if necessary
         result['_id'] = str(result['_id'])
 
-        # Prepare data for response
         response = {
             'date_time': result['date_time'],
             'trends': result['trend_names'],
